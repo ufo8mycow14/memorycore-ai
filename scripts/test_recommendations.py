@@ -312,7 +312,7 @@ class RecommendationTests(unittest.TestCase):
                 bm.decode_payload(blob)
 
     def test_original_schema_migration_preserves_ids_and_detail(self):
-        original = Path(__file__).resolve().parents[3] / "source" / "memorycore-ai" / "scripts" / "memorycore_ai.py"
+        original = Path(__file__).resolve().parents[1] / "fixtures" / "legacy" / "memorycore_ai.py"
         tree = ast.parse(original.read_text(encoding="utf-8"))
         schema = next(ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "SCHEMA" for t in node.targets))
         old = sqlite3.connect(":memory:")

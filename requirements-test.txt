@@ -1,0 +1,4 @@
+# Reference and mock-host tests; native/model capabilities remain explicit.
+-r requirements-tokenizer.txt
+-r requirements-security-lab.txt
+psutil==7.2.2

@@ -73,7 +73,7 @@ From a clone of this repository, with Python 3.12+:
 ```sh
 python -m venv .venv
 # Activate .venv using the command for your shell.
-python -m pip install -r requirements-tokenizer.txt -r requirements-security-lab.txt
+python -m pip install -r requirements-test.txt
 python -B scripts/memorycore_ai.py capabilities
 python -B -m unittest discover -s scripts -p "test*.py"
 ```

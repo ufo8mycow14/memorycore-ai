@@ -76,8 +76,7 @@ def packet_rows(text):
 
 def run():
     root = Path(__file__).resolve().parents[1]
-    original = root.parents[1] / "source" / "memorycore-ai"
-    source = original / "scripts" / "memorycore_ai.py"
+    source = root / "fixtures" / "legacy" / "memorycore_ai.py"
     spec = importlib.util.spec_from_file_location("original_memorycore_ai", source)
     old = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(old)

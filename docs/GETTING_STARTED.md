@@ -25,7 +25,7 @@ For a POSIX shell:
 Then:
 
 ```sh
-python -m pip install -r requirements-tokenizer.txt -r requirements-security-lab.txt
+python -m pip install -r requirements-test.txt
 python -B scripts/memorycore_ai.py capabilities
 python -B -m unittest discover -s scripts -p "test*.py"
 ```
@@ -61,7 +61,7 @@ python -m pip install -r scripts/vector-requirements.txt
 python -B -m scripts.vector_pipeline --help
 ```
 
-Model acquisition is an explicit setup operation. I pin model revisions and asset hashes in `scripts/model-assets-lock.json`. The default ranking profile also requires the conversion dependencies in `scripts/model-build-requirements.txt` during provisioning. I consult `download-model --help` and `download-reranker --help` before selecting a cache location. The cache and weights are not repository assets.
+Model acquisition is an explicit setup operation. I pin model revisions and asset hashes in `scripts/model-assets-lock.json`. The default ranking profile also requires the conversion dependencies in `scripts/model-build-requirements.txt` during provisioning. That conversion environment has known ONNX dependency advisories; I describe the current limitation in [the security policy](../SECURITY.md). I consult `download-model --help` and `download-reranker --help` before selecting a cache location. The cache and weights are not repository assets.
 
 I launch `scripts.memory_host`, `scripts.native_mcp` or `scripts.monitored_native_mcp` with the built broker, an explicit host configuration and the provisioned cache. Their `--help` output describes the current interface. The MCP adapter additionally binds an existing session. Each adapter process currently owns its own host, so launching one per project can duplicate resident models.
 

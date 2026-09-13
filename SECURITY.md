@@ -8,6 +8,12 @@ Please use [GitHub private vulnerability reporting](https://github.com/ufo8mycow
 
 I review reports as a community maintainer and cannot promise a fixed response or remediation deadline.
 
+## Known model-build dependency limitation
+
+As of 13 September 2026, GitHub reports eight security advisories for the optional `onnx==1.19.1` conversion dependency in `scripts/model-build-requirements.txt`, including high-severity model/file-handling issues. I retain that pin for the current reproducible model recipe and checksums. I do not regard this conversion environment as safe for untrusted models or production processing.
+
+I keep conversion separate from loading an already provisioned model cache. The reference test environment does not install ONNX. A reviewed upgrade must validate the conversion recipe and resulting model assets as well as dependency versions. I keep the dependency alerts open rather than treating synthetic test results as proof that the advisories are resolved.
+
 ## Important boundaries
 
 - I require a trusted host to establish session and scope authority; the local pipe is not an authenticated public service.
