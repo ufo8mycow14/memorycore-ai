@@ -4,7 +4,7 @@ I currently support this project as developmental, synthetic-only software. I do
 
 ## Reporting a vulnerability
 
-Please use [GitHub private vulnerability reporting](https://github.com/ufo8mycow14/memorycore-ai/security/advisories/new). I ask for affected versions, a minimal synthetic reproduction, expected behaviour and the security impact. Please do not put exploitable details or private payloads in a public issue.
+Please use [GitHub private vulnerability reporting](https://github.com/ufo8mycow14/memorycore-ai-for-codex/security/advisories/new). I ask for affected versions, a minimal synthetic reproduction, expected behaviour and the security impact. Please do not put exploitable details or private payloads in a public issue.
 
 I review reports as a community maintainer and cannot promise a fixed response or remediation deadline.
 

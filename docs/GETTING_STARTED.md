@@ -1,6 +1,8 @@
-# Getting started
+# Getting started with MemoryCore for Codex
 
 I recommend starting with the Python reference workflow, then adding the native runtime and semantic models as separate steps. I require synthetic fixtures and explicit disposable paths throughout.
+
+I explain the component relationships in [the architecture guide](ARCHITECTURE.md), and distinguish broker/MCP requests in [the interface guide](INTERFACES.md).
 
 ## Reference environment
 

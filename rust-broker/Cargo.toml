@@ -3,8 +3,8 @@ name = "memorycore-ai-broker"
 version = "0.5.0-dev"
 edition = "2024"
 license = "Apache-2.0"
-repository = "https://github.com/ufo8mycow14/memorycore-ai"
-description = "Scoped durable memory and compact evidence retrieval for local assistants"
+repository = "https://github.com/ufo8mycow14/memorycore-ai-for-codex"
+description = "Local persistent memory and compact evidence retrieval for OpenAI Codex via MCP"
 
 [features]
 sqlcipher = ["rusqlite/bundled-sqlcipher-vendored-openssl"]
