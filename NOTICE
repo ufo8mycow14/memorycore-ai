@@ -1,0 +1,6 @@
+MemoryCore AI
+Copyright 2026 ufo8mycow14 and contributors
+
+Original project code is licensed under the Apache License, Version 2.0.
+Vendored TurboVec is copyright 2026 Ryan Codrai and licensed separately under MIT.
+See THIRD_PARTY_NOTICES.md and rust-broker/vendor/turbovec/LICENSE.

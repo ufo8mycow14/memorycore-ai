@@ -1,0 +1,4 @@
+# Setup-only model conversion; not required to load a provisioned portable cache.
+-r vector-requirements.txt
+onnx==1.19.1
+ml_dtypes==0.6.0

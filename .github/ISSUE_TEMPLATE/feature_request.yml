@@ -1,0 +1,17 @@
+name: Feature or evaluation proposal
+description: Suggest a focused improvement or reproducible comparison.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case and desired outcome
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach and validation
+      description: Explain how correctness, privacy and complete token costs would be checked.
+    validations:
+      required: true

@@ -1,0 +1,22 @@
+[
+  ["Request reference 144: How should I look after my car?", "How should I look after my car?"],
+  ["request id #27: Who approves vendor invoices?", "Who approves vendor invoices?"],
+  ["Correlation id 009: Where is pump ZX-24 kept?", "Where is pump ZX-24 kept?"],
+  ["Trace id: 42: What is the warranty expiry date?", "What is the warranty expiry date?"],
+  ["Question number 7: Why are backups encrypted?", "Why are backups encrypted?"],
+  ["query id 3: Should guests wear badges?", "Should guests wear badges?"],
+  ["Request reference 144: Who is the finance manager?", "Who is the finance manager?"],
+  ["Request reference 144: What is the square root of 144?", "What is the square root of 144?"],
+  ["Request reference 144: What is its status?", null],
+  ["Request reference 144: Who approves it?", null],
+  ["Request reference 144: Does this require approval?", null],
+  ["Request reference 144: Can I return an item after buying it?", null],
+  ["Invoice 144: Who approves payment?", null],
+  ["Camera ZX-24: Where is the camera kept?", null],
+  ["2026-09-08: Which release is scheduled?", null],
+  ["Request reference ZX-24: What is the location?", null],
+  ["Request reference 144: Tell me more", null],
+  ["Request reference 144: Who approves invoices?\nDo not omit conditions.", null],
+  ["What does Request reference 144 mean?", null],
+  ["Where is pump 144 stored?", null]
+]

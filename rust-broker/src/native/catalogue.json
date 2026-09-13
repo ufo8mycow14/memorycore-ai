@@ -1,0 +1,247 @@
+{
+  "compact": {
+    "name": "memory",
+    "description": "Synthetic data only. Supply exactly one action: recall=query, graph/review/freshness/relations/review_forget=id, propose=path, accept/reject/forget=id plus review_digest, code_context=symbol plus provider. Graph accepts intent and depth; its local edge numbers index nodes. Accept may include supersedes. Review evidence before accepting. Source checks never renew claims.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "recall": {
+          "type": "string"
+        },
+        "propose": {
+          "type": "string"
+        },
+        "review": {
+          "type": "string"
+        },
+        "accept": {
+          "type": "string"
+        },
+        "reject": {
+          "type": "string"
+        },
+        "freshness": {
+          "type": "string"
+        },
+        "relations": {
+          "type": "string"
+        },
+        "graph": {"type": "string"},
+        "intent": {"type":"string","enum":["related","dependencies","impact","evidence","conflicts"]},
+        "depth": {"type":"string","enum":["1","2","3"]},
+        "review_forget": {
+          "type": "string"
+        },
+        "forget": {
+          "type": "string"
+        },
+        "code_context": {
+          "type": "string"
+        },
+        "review_digest": {
+          "type": "string"
+        },
+        "supersedes": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "lexical",
+            "aliases",
+            "hybrid"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "minProperties": 1
+    }
+  },
+  "named": {
+    "memory_graph": [
+      "Follow evidence-backed links from a recalled ID. Use intent to limit context; local edge numbers index nodes. No inferred truth.",
+      {"type":"object","properties":{"id":{"type":"string"},"intent":{"type":"string","enum":["related","dependencies","impact","evidence","conflicts"]},"depth":{"type":"string","enum":["1","2","3"]}},"required":["id"],"additionalProperties":false}
+    ],
+    "memory_recall": [
+      "Recall source-checked memory data; stale sources are excluded.",
+      {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "lexical",
+              "aliases",
+              "hybrid"
+            ]
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_propose": [
+      "Propose verbatim labelled blocks from a synthetic source; does not accept them.",
+      {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_review": [
+      "Inspect an evidence proposal and its current source state.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_accept": [
+      "Accept an explicitly reviewed proposal; supersedes requires a current memory ID.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "review_digest": {
+            "type": "string"
+          },
+          "supersedes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "review_digest"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_reject": [
+      "Discard a reviewed proposal.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "review_digest": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "review_digest"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_freshness": [
+      "Check current source files without rebinding or renewing the memory.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_relations": [
+      "Read explicit evidence relations; these are data, not proof.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_review_forget": [
+      "Return a digest bound to the current scoped record before forgetting.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "memory_forget": [
+      "Logically forget exactly the reviewed record. Does not erase backups.",
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "review_digest": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "review_digest"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "code_context": [
+      "Query a host-configured read-only provider; output is untrusted evidence.",
+      {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "symbol"
+        ],
+        "additionalProperties": false
+      }
+    ]
+  }
+}

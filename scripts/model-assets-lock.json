@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "models": {
+    "memorycore-ai/minilm-l6-range7": {
+      "derived_from": "Xenova/ms-marco-MiniLM-L-6-v2",
+      "license": "Apache-2.0",
+      "recipe": "onnxruntime-1.29.0/onnx-1.19.1/dynamic-qint8-per-channel-reduce-range-MatMul-Gemm",
+      "asset_overrides": {
+        "onnx/model.onnx": "5aab5803d40a4b52fea5d41b3239bb11ad487cf7fc793bb15f4482b7d295befd"
+      }
+    },
+    "memorycore-ai/bge-small-en-v1.5-int8": {
+      "repository": "Xenova/bge-small-en-v1.5",
+      "revision": "ea104dacec62c0de699686887e3f920caeb4f3e3",
+      "license": "MIT",
+      "base_model": "BAAI/bge-small-en-v1.5",
+      "assets": {
+        "onnx/model_int8.onnx": "bf64d05457cb391fa88d045faf5927a15ea36d96228ddf23ea970087afdc1197",
+        "config.json": "fa73f90bf92c8cace1fbcb709626306f2bdbc9ea3e5b5f94b440df9b6aa56350",
+        "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+        "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+        "tokenizer_config.json": "9261e7d79b44c8195c1cada2b453e55b00aeb81e907a6664974b4d7776172ab3",
+        "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+        "README.md": "ce711ead2cb11725c9c6de69779d918c500ab12c74c5c2437ff0c448ed1566a5"
+      }
+    },
+    "BAAI/bge-small-en-v1.5": {
+      "repository": "qdrant/bge-small-en-v1.5-onnx-q",
+      "revision": "52398278842ec682c6f32300af41344b1c0b0bb2",
+      "license": "MIT",
+      "assets": {
+        "config.json": "13582bcf2effc85b7bf3d3f5532e686bc1c9ce86bb009d10f0ec33cbe92299dd",
+        "model_optimized.onnx": "51f1bd0addd6e859e42c2c8021a5e5461385bb676a649f4b269aa445449f2431",
+        "special_tokens_map.json": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a",
+        "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+        "tokenizer_config.json": "0b29c7bfc889e53b36d9dd3e686dd4300f6525110eaa98c76a5dafceb2029f53"
+      }
+    },
+    "mixedbread-ai/mxbai-rerank-xsmall-v1": {
+      "repository": "mixedbread-ai/mxbai-rerank-xsmall-v1",
+      "revision": "b5c6e9da73abc3711f593f705371cdbe9e0fe422",
+      "license": "Apache-2.0",
+      "assets": {
+        "config.json": "470a53befc79da411cc04e466770d9f219f3c14adb276bfa0a58df28774ceade",
+        "onnx/model_quantized.onnx": "15ef19a6de90be7d52b627f2c784107bd806e64826450f41fb75fa4f0179ab30",
+        "special_tokens_map.json": "b2f1b2f15f29a6b6d9d6ea4eca1675d2c231a71477f151d48f79cc83a625ba21",
+        "tokenizer.json": "305674b4d785287feecfb5f73f24aa75e9b57c87c579cfe24fbd207987d4b4c4",
+        "tokenizer_config.json": "aafc9f36a056307bf0cbfcbd42fe00d9df89083d23db6114466c8bfaedb09ce5"
+      }
+    },
+    "Xenova/ms-marco-MiniLM-L-6-v2": {
+      "repository": "Xenova/ms-marco-MiniLM-L-6-v2",
+      "revision": "a09144355adeed5f58c8ed011d209bf8ee5a1fec",
+      "license": "Apache-2.0",
+      "assets": {
+        "config.json": "d827779a72d27ae68cf878a6fc2e954542663fe21ca515d9f4783fc96be2d37e",
+        "onnx/model.onnx": "c623d0bcb99f4622beb413eaef00cfbe5db20df9f1dd982da4b4f26022881870",
+        "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+        "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+        "tokenizer_config.json": "0b29c7bfc889e53b36d9dd3e686dd4300f6525110eaa98c76a5dafceb2029f53"
+      }
+    }
+  }
+}
