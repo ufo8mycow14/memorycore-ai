@@ -26,11 +26,13 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install reference test dependencies
-        run: python -m pip install -r requirements-tokenizer.txt -r requirements-security-lab.txt
+        run: python -m pip install -r requirements-test.txt
       - name: Build native release
         run: cargo build --manifest-path rust-broker/Cargo.toml --locked --release
       - name: Python and native integration tests
         run: python -B -m unittest discover -s scripts -p "test*.py"
+      - name: Standalone synthetic evaluation
+        run: python -B -m scripts.evaluate_synthetic --output "$env:RUNNER_TEMP/memorycore-evaluation.json"
       - name: Rust tests
         run: cargo test --manifest-path rust-broker/Cargo.toml --locked --all-targets
       - name: Rust lint

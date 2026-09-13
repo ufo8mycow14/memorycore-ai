@@ -137,7 +137,7 @@ class MemoryCoreAITests(unittest.TestCase):
         )
         initialized = json.loads(result.stdout)
         expected = app_home / "vault" / "memorycore-ai.sqlite3"
-        self.assertEqual(Path(initialized["database"]), expected)
+        self.assertEqual(Path(initialized["database"]).resolve(), expected.resolve())
         self.assertTrue(expected.exists())
         if os.name != "nt":
             self.assertEqual(expected.parent.stat().st_mode & 0o777, 0o700)

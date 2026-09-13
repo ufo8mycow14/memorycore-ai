@@ -1,0 +1,101 @@
+---
+name: memorycore-ai
+description: Secure, compressed, persistent memory designed exclusively for Codex. Use when Codex must recall, stage, consolidate, correct, or forget durable memory across chats and projects; do not use it merely to summarize one visible conversation.
+---
+
+# MemoryCore AI
+
+This skill is the decision layer for the Codex-only MemoryCore AI system. Codex is the sole AI client. The encrypted vault and security broker remain separate processes so Codex never receives encryption keys or unrestricted database access.
+
+Use a two-tier memory system with human brain names and precise systems meanings:
+
+- **The Hippocampus — The Temp Worker:** volatile staging and write-back cache for fresh events. It may hold raw conversation fragments briefly while deciding what deserves consolidation.
+- **The Cerebral Cortex — The Filing Cabinet:** durable, compressed, versioned memory store. It contains atomic memories, not whole chat transcripts.
+
+Treat these as functional names, not claims that biological memory exists in only two anatomical structures.
+
+## Choose the Operation
+
+- **Recall:** retrieve the smallest relevant set before answering or acting.
+- **Stage:** place fresh material in the Hippocampus when its long-term value is uncertain.
+- **Consolidate:** convert staged material into atomic Cortex memories.
+- **Correct:** add a replacement and mark the earlier memory superseded; never silently rewrite history.
+- **Forget:** expire or soft-delete a memory when the user asks or retention no longer has a purpose.
+- **Store Exact:** preserve user-selected content byte-for-byte in Full-Fidelity Memory.
+- **Archive:** remove inactive memory from normal recall without deleting it.
+- **Prune:** propose low-value or stale memories for archival; never prune silently.
+- **Purge:** permanently erase only the exact memories the user explicitly confirms.
+
+For architecture decisions or implementation work, read [references/architecture.md](references/architecture.md). For exact fields and memory types, read [references/schema.md](references/schema.md). For the absolute no-store rules, read [references/prohibited-data.md](references/prohibited-data.md). For names and contact details, read [references/people-and-contacts.md](references/people-and-contacts.md). For security work, read [references/security.md](references/security.md). For exact preservation requests, read [references/full-fidelity.md](references/full-fidelity.md). For deletion, pruning, and archiving, read [references/lifecycle.md](references/lifecycle.md). For local paths and ownership, read [references/storage-home.md](references/storage-home.md). For the Codex connection, read [references/codex-integration.md](references/codex-integration.md). For prototype CLI calls, read [references/operations.md](references/operations.md).
+
+The bundled Python script is an unencrypted proof of concept. Do not store real personal information in it. Production operations require the encrypted MemoryCore AI service and its authorisation broker.
+
+## Recall Before Work
+
+Recall only when earlier state could materially change the response. Query by project/person/topic scope first, then rank by relevance, importance, confidence, and recency. Prefer active memories; include superseded records only for audit or history requests.
+
+Load summaries first. Load compressed detail only when the summary is insufficient. Use prompt-format recall with a strict character budget by default; request JSON only for programmatic work. Unrelated memory is noise, not helpful context.
+
+Never present an inference as a remembered fact. Surface conflicts or low confidence when they affect the task.
+
+## Consolidate After Work
+
+Do not store a chat merely because it occurred. Retain only information with likely future utility:
+
+- explicit stable preferences and accessibility needs;
+- durable project facts, identifiers, constraints, decisions, and current status;
+- user corrections to earlier information;
+- commitments, deadlines, and unresolved work while active;
+- reusable procedures, successful fixes, and important failed approaches;
+- significant episodes whose sequence or outcome will matter later.
+
+Discard greetings, filler, repeated text, model reasoning, temporary tool output, abandoned drafts, and facts easily recovered from an authoritative source. Apply the absolute prohibited-data policy before any staging, compression, encryption, indexing, logging, backup, or synchronisation. It has no exact-save, attachment, file-container, or user override. A prohibited value inside a document, image, archive, metadata field, or binary file makes the entire memory write ineligible. Reject files that cannot be inspected reliably. Do not infer or retain vulnerability-trigger associations. Store third-party health, legal, financial, or identity data only when the user explicitly needs persistent memory and an appropriate isolated scope is available, except that prohibited bank, payment, and authentication data can never be stored.
+
+Create the fewest atomic records that preserve future usefulness. Each record should state one claim, decision, preference, episode, or procedure. Preserve provenance and dates. Label uncertain interpretations as hypotheses rather than facts.
+
+Store names, aliases, relationships, phone numbers, email addresses, addresses, important dates, preferences, and user-provided notes as structured encrypted entity attributes when they have clear future value or the user asks. Do not guess missing contact details or merge people solely because their names match.
+
+## Route by Human Memory Type
+
+- **Sensory Memory:** raw tool/chat input buffer; transient and normally not persisted.
+- **Working Memory:** current-task context assembled for the active prompt; never treated as durable truth.
+- **Short-Term Memory:** Hippocampus staging records awaiting consolidation or expiry.
+- **Semantic Memory:** stable facts, definitions, relationships, constraints, and current state.
+- **Episodic Memory:** dated events, decisions, attempts, outcomes, and their provenance.
+- **Procedural Memory:** validated workflows, commands, policies, and task skills.
+- **Priming and Conditioning:** explicit interaction preferences or user-approved trigger-to-response rules. Never infer emotional conditioning or exploit vulnerabilities.
+- **Classical Conditioning:** a narrow subtype for explicit automatic response rules. Require user confirmation before storing it.
+
+## Compression Contract
+
+Apply compression in this order:
+
+1. **Selective retention:** omit information without durable value.
+2. **Semantic compression:** extract atomic canonical summaries; replace repetition with references.
+3. **Deduplication:** merge exact duplicates and link related memories.
+4. **Binary compression:** compress retained UTF-8 detail losslessly.
+5. **Retrieval compression:** inject only relevant summaries, expanding detail on demand.
+
+A 128-bit value is a memory address/fingerprint, not a container for arbitrary memory content. Keep a full integrity checksum alongside it when collision or corruption detection matters.
+
+## Obey Explicit Fidelity Requests
+
+Interpret “remember this,” without a fidelity qualifier, as semantic memory: preserve the useful meaning and provenance while removing repetition. Interpret “remember this exactly,” “save this in full,” “store the original,” “do not summarise this,” or an explicit exact-memory command as Full-Fidelity Memory.
+
+For Full-Fidelity Memory, first run the prohibited-data gate and reject the entire write if it detects or cannot safely rule out forbidden content. Otherwise call the dedicated exact-store operation with the original bytes and boundaries. Do not rewrite, normalise, redact silently, or substitute a summary. Store a separate linked summary/index for retrieval efficiency while preserving the immutable original. Return a receipt containing the memory ID, byte count, integrity hash, scope, retention, and encryption status.
+
+If exact storage is unavailable, fails, or rejects the content, say so plainly. Never claim that exact memory was saved based only on a summary or the visible chat context.
+
+## User Control and Safety
+
+Honor requests to inspect, export, correct, pin, expire, or forget memories. Use soft deletion by default so accidental removal can be restored; permanently erase only with explicit authorization. Keep global, project, person, and client scopes isolated. Never allow one person's sensitive memory to leak into another scope.
+
+Pruning defaults to a preview. Archive candidates instead of deleting them. Exact and pinned memories are excluded from automatic pruning. A purge must name exact memory IDs, require confirmation, produce a deletion receipt, and account for encrypted backups under their retention schedule.
+
+When the storage tool is absent, produce proposed structured memories for user review rather than claiming persistence.
+
+Never write durable memory directly into this skill, a system prompt, repository instructions, or Codex configuration. The user-owned encrypted vault is the source of truth.
+
+Email addresses are allowed contact identifiers. Authentication secrets associated with an email address or account are not. MemoryCore AI may remember a non-secret pointer such as “the API key is kept in the user's password manager,” but never the secret value.
+
+This restriction governs MemoryCore AI only. It must not stop or alter ordinary Codex work. Codex may still request an API key or other credential when a task requires one and tell the user where the relevant application, project, operating system, or provider expects it to be configured. The value may be used through that normal task-specific mechanism but must be excluded from memory, consolidation, recall, and memory receipts.

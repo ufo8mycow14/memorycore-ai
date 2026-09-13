@@ -76,8 +76,7 @@ def packet_rows(text):
 
 def run():
     root = Path(__file__).resolve().parents[1]
-    original = root.parents[1] / "source" / "memorycore-ai"
-    source = original / "scripts" / "memorycore_ai.py"
+    source = root / "fixtures" / "legacy" / "memorycore_ai.py"
     spec = importlib.util.spec_from_file_location("original_memorycore_ai", source)
     old = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(old)
@@ -205,7 +204,7 @@ def run():
     return dict(kind="implementation_paired_synthetic_evaluation", seed=1408, sqlite=sqlite3.sqlite_version,
         tokenizer_version=importlib.metadata.version("tiktoken"), baseline="Preserved recovered 0.7.1-alpha, not the later pre-audit development hash",
         source_hashes={"baseline": hashlib.sha256(source.read_bytes()).hexdigest(), "development": hashlib.sha256(Path(current.__file__).read_bytes()).hexdigest()},
-        instructions={"original_skill": token_counts((original / "SKILL.md").read_text(encoding="utf-8")),
+        instructions={"original_skill": token_counts((root / "fixtures" / "legacy" / "original_skill.txt").read_text(encoding="utf-8")),
                       "current_skill": token_counts((root / "SKILL.md").read_text(encoding="utf-8"))},
         retrieval=query_results, retrieval_alternatives=retrieval_alternatives, formatting=formatting, budgets=budgets,
         old_prompt_tokens=token_counts(old.render_prompt_packet(results["recovered_0_7_1_alpha"], 100000, False)),

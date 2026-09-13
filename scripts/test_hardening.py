@@ -96,7 +96,7 @@ class HardeningTests(unittest.TestCase):
             connect.assert_not_called()
 
     def legacy(self, *, broken=None):
-        original = Path(__file__).resolve().parents[3] / "source" / "memorycore-ai" / "scripts" / "memorycore_ai.py"
+        original = Path(__file__).resolve().parents[1] / "fixtures" / "legacy" / "memorycore_ai.py"
         tree = ast.parse(original.read_text(encoding="utf-8"))
         schema = next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "SCHEMA" for t in n.targets))
         conn = sqlite3.connect(":memory:")
