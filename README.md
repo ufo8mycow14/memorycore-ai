@@ -32,7 +32,6 @@ Before a background pass can proceed, I also require:
 
 - Memory generation enabled for the session and no active chat turn.
 - Trusted chat and quota observations no older than **60 seconds**.
-- At least **25% quota remaining in every applicable window** supplied by the host; exactly 25% passes.
 - No disqualifying external context when that optional policy is enabled.
 
 Existing memory recall and authorised manual saves do not have to wait 24 hours. The delay applies to background extraction/proposals, not permission to keep the only copy of completed work in RAM. Durable staging, source checks, review and session permissions remain separate requirements.
