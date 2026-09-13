@@ -1,5 +1,7 @@
 # MemoryCore AI
 
+[![MemoryCore AI architecture: an assistant sends a question to MemoryCore, which uses local embedding and reranking models, a TurboVec four-bit vector index and a SQLite or SQLCipher vault to return compact context with relevant facts and provenance.](docs/assets/memorycore-architecture.png)](docs/ARCHITECTURE.md)
+
 **Durable memory. Relevant context. Less repeated work.**
 
 [![Development](https://img.shields.io/badge/stage-working%20development%20build-orange)](#development-stage)
@@ -32,6 +34,19 @@ I’m inviting help with testing, portability, retrieval quality, documentation 
 | Operational visibility | Payload-free MCP metrics, bounded queues, read/write admission and resource controls. |
 
 I describe the boundaries and relevant source files in the [feature map](docs/FEATURES.md).
+
+## How it works under the hood
+
+I use **Rust/Tokio** for the native broker, **SQLite/SQLCipher** for durable storage, **local ONNX models** for embeddings and reranking, and **TurboVec 1.0.0** for the four-bit vector search index. TurboVec remains a mandatory native dependency. It shortlists possible matches; current source, version and lifecycle checks decide which evidence is eligible to return.
+
+I keep the technical details in linked guides with source references:
+
+- [Architecture and component diagram](docs/ARCHITECTURE.md): how a fact moves from reviewed evidence to compact recall, and why I use both Rust and Python.
+- [Retrieval, models and TurboVec](docs/RETRIEVAL.md): embeddings, quantisation, lexical/vector search, reranking, cache/index updates and graph expansion.
+- [Storage and lifecycle](docs/STORAGE_AND_LIFECYCLE.md): record layout, compression, integrity, corrections, retention, encryption, deletion and recovery.
+- [Interfaces and operations](docs/INTERFACES.md): session configuration, raw broker versus MCP requests, review actions, limits and monitoring.
+
+I distinguish compressed storage bytes, compact vector indexes and reduced prompt context. Each has a different cost and must be measured separately.
 
 ## How I intend it to be used
 

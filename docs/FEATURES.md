@@ -2,6 +2,8 @@
 
 I distinguish implemented development features from integration work and future goals. All current use remains synthetic-only.
 
+For the implementation walkthrough, I provide [architecture](ARCHITECTURE.md), [retrieval and TurboVec](RETRIEVAL.md), [storage and lifecycle](STORAGE_AND_LIFECYCLE.md), and [interfaces](INTERFACES.md).
+
 | Area | Implemented surface | Source |
 | --- | --- | --- |
 | Core memory | Stage, remember, consolidate, recall, inspect, list, corrections, pins, expiry, archive, restore, prune, purge, import/export | `scripts/memorycore_ai.py` |
