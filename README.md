@@ -20,9 +20,11 @@ My approach combines **Codex memory through MCP**, **semantic search with TurboV
 
 I maintain this as an independent project for Codex workflows. The implementation and integration limits below describe what is actually available.
 
-## The 24-hour memory rule
+## Delayed memory consolidation: the 24-hour idle window
 
-I wait until a chat has been **inactive for at least 24 hours** before it becomes eligible for background memory extraction and proposal generation. This gives work time to settle before I turn it into durable memory.
+I use **delayed memory consolidation with a 24-hour idle window**: a chat must be **inactive for at least 24 hours** before it becomes eligible for background extraction of useful facts into reviewable memory proposals. Accepted proposals then become durable memories. This gives work time to settle before I retain its conclusions.
+
+This is a delay in forming background memories, not a rule that everything lives in a cache for 24 hours. Recall caches, staged material and durable memory each have separate lifetimes.
 
 The clock runs from the **last activity**, so returning to the chat moves the earliest eligible time forward. If the last activity was Monday at 10:00, the earliest eligibility is Tuesday at 10:00. Another message on Monday at 18:00 moves that to Tuesday at 18:00. This is an idle threshold, not a daily scheduled run.
 
@@ -35,24 +37,25 @@ Before a background pass can proceed, I also require:
 
 Existing memory recall and authorised manual saves do not have to wait 24 hours. The delay applies to background extraction/proposals, not permission to keep the only copy of completed work in RAM. Durable staging, source checks, review and session permissions remain separate requirements.
 
-The current build implements and tests this eligibility gate. A trusted host must invoke it and supply current observations; I do not claim an installed automatic chat-capture feed or a timer that guarantees generation at the 24-hour mark. I explain the separate staging-expiry and archive-retention clocks in [memory rules and Codex influences](docs/MEMORY_RULES.md).
+The current build implements and tests this eligibility gate. A trusted host must invoke it and supply current observations; I do not claim an installed automatic chat-capture feed or a timer that guarantees generation at the 24-hour mark. I explain the separate staging-expiry and archive-retention clocks in [memory consolidation and retention](docs/MEMORY_RULES.md).
 
-## What I adapted from Codex—and what I changed
+## Memory processing and retention rules
 
-I drew on Codex’s documented memory policies and adapted them for MemoryCore’s scoped vault, review process and token-efficiency goals.
+I separate memory formation, retrieval and retention so each operation has clear controls.
 
-| Policy or design idea | Codex’s documented behaviour | My MemoryCore adaptation |
-| --- | --- | --- |
-| Wait for idle work | `memories.min_rollout_idle_hours` defaults to **6 hours**, configurable from 1–48 | **24 hours** in the native gate and the Python policy default; a fresh host observation is required |
-| Protect available quota | `memories.min_rate_limit_remaining_percent` defaults to **25%** | Keep the 25% threshold, require every applicable window from the trusted host, and reject stale/missing observations |
-| Separate reading from generation | `memories.use_memories` and `memories.generate_memories` are independent controls | Host-selected session controls gate recall and generation separately; reviewed forgetting remains available |
-| Exclude external context when selected | Optional `memories.disable_on_external_context`, default false | An optional gate for background proposals after tool/web context; it does not switch off ordinary recall |
-| Extract and consolidate separately | Codex documents per-chat extraction and global consolidation model settings | Supported source blocks become proposals, then explicit digest-bound review/acceptance creates durable records |
-| Keep required rules authoritative | Codex recommends `AGENTS.md` or checked-in guidance for mandatory rules | Source-checked recall supplements project instructions; memory does not become the only authority |
+| Mechanism | What I implement |
+| --- | --- |
+| Delayed memory consolidation | A **24-hour idle window** before background extraction/proposals become eligible; acceptance remains a separate reviewed step |
+| Quota protection | At least **25% remaining** in every applicable host-supplied window, with observations no older than **60 seconds** |
+| Independent memory controls | Separate permission to use existing memories and generate new ones; reviewed forgetting remains available |
+| External-context filtering | An optional exclusion from background proposals after tool/web context; ordinary recall is unaffected by this option |
+| Evidence review | Source blocks become proposals, then digest-bound review/acceptance creates durable records |
+| Source freshness | Source hashes and current versions are checked before evidence is used; mandatory rules remain in authoritative project files |
+| Archive retention | Archived chat/project memory is retained for **365 days by default**, with earlier manual deletion or unarchive available |
 
-I additionally use a **SQLite/SQLCipher vault**, source-hash freshness checks, versioned corrections, **TurboVec semantic indexing**, compact token-budgeted packets, deletion tombstones and a **365-day native archive-retention default**. Archive retention is a different policy from Codex’s age/unused-memory consolidation settings.
+I store durable memory in a **SQLite/SQLCipher vault**, with versioned corrections, **TurboVec semantic indexing**, compact token-budgeted packets and deletion tombstones. Cache reuse, staging expiry, background consolidation and archive retention are separate mechanisms.
 
-I credit behavioural inspiration separately from bundled third-party code. The detailed [policy comparison](docs/MEMORY_RULES.md) links implementation files and explains the differences. Codex defaults above were checked against OpenAI’s [memory guide](https://learn.chatgpt.com/docs/customization/memories) and [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference) on 13 September 2026.
+The [memory consolidation and retention guide](docs/MEMORY_RULES.md) links the implementation and explains each clock and control. Bundled third-party code is credited in [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Development stage
 
@@ -87,7 +90,7 @@ I keep the technical details in linked guides with source references:
 - [Retrieval, models and TurboVec](docs/RETRIEVAL.md): embeddings, quantisation, lexical/vector search, reranking, cache/index updates and graph expansion.
 - [Storage and lifecycle](docs/STORAGE_AND_LIFECYCLE.md): record layout, compression, integrity, corrections, retention, encryption, deletion and recovery.
 - [Interfaces and operations](docs/INTERFACES.md): session configuration, raw broker versus MCP requests, review actions, limits and monitoring.
-- [Memory rules and Codex influences](docs/MEMORY_RULES.md): the 24-hour idle rule, quota checks, separate memory controls and policy adaptations.
+- [Memory consolidation and retention](docs/MEMORY_RULES.md): the 24-hour idle window, quota checks, separate memory controls and retention clocks.
 
 I distinguish compressed storage bytes, compact vector indexes and reduced prompt context. Each has a different cost and must be measured separately.
 

@@ -1,10 +1,10 @@
-# Memory rules and what I adapted from Codex
+# Delayed memory consolidation and retention
 
-I took inspiration from Codex’s documented approach to local memory: wait for work to become idle, protect quota, separate using memories from generating them, and keep required instructions in authoritative project files. I adapted those ideas to MemoryCore’s explicit scopes, evidence review, durable vault and compact retrieval.
+I use delayed memory consolidation to form durable memories from settled work. A 24-hour idle window controls eligibility for background extraction into reviewable proposals; acceptance then creates durable records. Quota checks, session permissions, source verification and retention rules remain separate controls.
 
-This page compares documented policy with the published implementation. I use “adapted” to describe behavioural design choices; it is not a claim that Codex’s memory engine is bundled in this repository. Actual vendored code and its licence are identified in [third-party notices](../THIRD_PARTY_NOTICES.md).
+I distinguish that background formation process from caching. A cache reuses a previous computation or result; consolidation selects and accepts useful facts for durable memory. The 24-hour idle window does not set the lifetime of every cache or stored fact. Actual vendored code and its licence are identified in [third-party notices](../THIRD_PARTY_NOTICES.md).
 
-## The 24-hour rule, step by step
+## The 24-hour idle window, step by step
 
 I evaluate elapsed time since the host-observed `last_activity_at`. The native threshold is `24 * 60 * 60` seconds; the Python policy has the same default. I do not run a daily calendar job or infer that closing a window establishes an idle timestamp.
 
@@ -52,23 +52,9 @@ The background wait does not extend a staging record’s expiry. Expired staged 
 
 Stage expiry, archive cleanup and actual byte disposal depend on the relevant maintenance path. I do not equate an elapsed timestamp with verified physical erasure from all backups. See [storage and lifecycle](STORAGE_AND_LIFECYCLE.md).
 
-## Codex defaults and my adaptations
+## Implementation reference
 
-I checked these public defaults on **13 September 2026**. OpenAI can change them; the linked current documentation is the authority for Codex, while the linked code is the authority for this MemoryCore version.
-
-| Codex reference | Documented setting/behaviour | What I retained or changed |
-| --- | --- | --- |
-| Idle generation | `memories.min_rollout_idle_hours`: default 6, clamped to 1–48 | I chose 24 hours in the native gate and as the Python default. I did not change Codex’s global setting. |
-| Available quota | `memories.min_rate_limit_remaining_percent`: default 25, clamped to 0–100 | I retained 25% and added explicit 60-second freshness checks for trusted chat/quota observations. |
-| Use existing memories | `memories.use_memories`: default true | I apply a host-session use control to MemoryCore’s recall/evidence surface. |
-| Generate future memories | `memories.generate_memories`: default true | I gate MemoryCore proposals/acceptance separately from use; reviewed forgetting and rejection remain available. |
-| External context | `memories.disable_on_external_context`: default false | I offer an optional background-proposal exclusion using host-supplied external-context state. |
-| Extraction and consolidation | Separate `memories.extract_model` and `memories.consolidation_model` settings | I use evidence-preserving proposals followed by reviewed acceptance, not those Codex model stages. Local ONNX models serve search/reranking. |
-| Required guidance | Mandatory rules belong in `AGENTS.md` or checked-in documentation | I preserve that separation and recheck source evidence instead of treating recalled text as instructions. |
-| Secret handling | Codex documents redaction of generated memory fields | I add prohibited-data checks and an optional labelled redacted source projection before persistence; neither is a universal detector. |
-| Memory housekeeping | `memories.max_rollout_age_days` and `memories.max_unused_days` each default to 30 for their documented eligibility purposes | I use separate record expiry, archive retention and lifecycle/tombstone policies. The 365-day archive default is not a replacement value for either Codex setting. |
-
-I additionally implemented native session/scope validation, SQLite/SQLCipher storage, source hashes, review digests, versioned corrections, exact-text preservation, TurboVec indexing, bounded graph retrieval, compact packets and retry/deletion safeguards. These mechanisms have their own [architecture](ARCHITECTURE.md) and [retrieval](RETRIEVAL.md) documentation.
+I implement these rules alongside native session/scope validation, SQLite/SQLCipher storage, source hashes, review digests, versioned corrections, exact-text preservation, TurboVec indexing, bounded graph retrieval, compact packets and retry/deletion safeguards. These mechanisms have their own [architecture](ARCHITECTURE.md) and [retrieval](RETRIEVAL.md) documentation.
 
 ## ChatGPT, Codex and MemoryCore ownership
 
