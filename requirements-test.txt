@@ -2,3 +2,4 @@
 -r requirements-tokenizer.txt
 -r requirements-security-lab.txt
 psutil==7.2.2
+filelock==3.32.5
