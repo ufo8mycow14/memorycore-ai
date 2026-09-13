@@ -73,4 +73,12 @@ I provide stdio MCP support for a trusted local client. I have not certified eve
 
 The Windows helper `scripts/setup_local_rollout.py` is an advanced, explicit installer: it creates a local environment and synthetic vault, downloads dependencies/models, and edits a Codex configuration file. I do not use it as a read-only demo or recommend running it without inspecting its arguments and changes. It does not import existing conversations or replace platform memory.
 
+I preview the proposed registration without creating files, downloading assets or starting a host:
+
+```sh
+python -B -m scripts.setup_local_rollout --dry-run
+```
+
+The installer preserves existing host configuration, including legacy fields. It refuses conflicting or disabled MCP registrations instead of overwriting them. An unsupported legacy host setting must be reviewed explicitly; setup does not silently remove it. Before adding a registration, setup starts the monitored adapter and verifies protocol negotiation, the memory tool catalogue and ping over stdio. This checks startup, not retrieval quality or production readiness. Existing configuration receives a backup before a new registration is added. The default newly created vault remains an explicitly plaintext synthetic fixture; encrypted operation needs the separate SQLCipher configuration described above.
+
 For full local integration tests, I set `MEMORYCORE_AI_SQLCIPHER_BINARY`, `MEMORYCORE_AI_VECTOR_BINARY` and `MEMORYCORE_AI_MODEL_CACHE` to verified local resources. Native reference tests also expect the ordinary release binary under `rust-broker/target/release`. Missing capabilities produce skips, which I report separately from passes.

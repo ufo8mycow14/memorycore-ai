@@ -12,8 +12,7 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from scripts.memory_host import MemoryHost, unique_object
-from scripts.native_mcp import NativeMCP, serve
+from scripts.native_mcp import NativeMCP, serve, unique_object
 
 
 def _percentile(values, fraction):
@@ -83,6 +82,7 @@ class MetricsLog:
             compact_included = max(0, len(packet_lines) - 2)
         host = response.get("semantic_host", {}) if isinstance(response, dict) else {}
         retrieval = host.get("retrieval", {}) if isinstance(host, dict) else {}
+        packet_cache = host.get("packet_cache", {}) if isinstance(host, dict) else {}
         timing = host.get("timing", {}) if isinstance(host, dict) else {}
         budget = host.get("resource_budget", {}) if isinstance(host, dict) else {}
         index = host.get("index", {}) if isinstance(host, dict) else {}
@@ -115,7 +115,10 @@ class MetricsLog:
                 "reranker_scored": retrieval.get("reranker_scored"),
                 "reranker_candidates": retrieval.get("reranker_candidates"),
                 "admission": retrieval.get("admission"),
+                "packet_cache": retrieval.get("packet_cache"),
             },
+            "packet_cache": {key: packet_cache.get(key) for key in (
+                "hits", "misses", "stores", "evictions", "invalidations", "entries", "scopes")},
             "timing_ms": {key: timing.get(key) for key in ("encode_ms", "candidates_ms", "rerank_ms", "final_ms")},
             "resource": {
                 "limited": host.get("resource_limited") if isinstance(host, dict) else None,
@@ -179,6 +182,8 @@ def summarise(path):
     reranker_states = Counter()
     arguments = Counter()
     resources = Counter()
+    packet_cache_states = Counter()
+    packet_cache_latest = {}
     rows = 0
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         if not line.strip():
@@ -205,6 +210,11 @@ def summarise(path):
             vector_states[retrieval["vector_state"]] += 1
         if retrieval.get("reranker_state"):
             reranker_states[retrieval["reranker_state"]] += 1
+        if retrieval.get("packet_cache"):
+            packet_cache_states[retrieval["packet_cache"]] += 1
+        if isinstance(row.get("packet_cache"), dict) and any(
+                isinstance(value, int) for value in row["packet_cache"].values()):
+            packet_cache_latest = row["packet_cache"]
         for arg in row.get("memory_arguments", []):
             arguments[arg] += 1
         resource = row.get("resource", {})
@@ -219,6 +229,10 @@ def summarise(path):
             "p99": _percentile(values, .99),
             "max": max(values) if values else None,
         }
+    hits = packet_cache_latest.get("hits") if isinstance(packet_cache_latest.get("hits"), int) else None
+    misses = packet_cache_latest.get("misses") if isinstance(packet_cache_latest.get("misses"), int) else None
+    total_cacheable = hits + misses if hits is not None and misses is not None else None
+    hit_rate = round((hits / total_cacheable) * 100, 2) if total_cacheable else None
     return {
         "schema": "memorycore-ai-monitor-summary/v1",
         "rows": rows,
@@ -232,6 +246,15 @@ def summarise(path):
         "packet_modes": dict(modes),
         "vector_states": dict(vector_states),
         "reranker_states": dict(reranker_states),
+        "packet_cache_states": dict(packet_cache_states),
+        "packet_cache_latest": packet_cache_latest,
+        "packet_cache_effect": {
+            "cacheable_recalls": total_cacheable,
+            "hits": hits,
+            "misses": misses,
+            "hit_rate_percent": hit_rate,
+            "estimated_full_retrievals_avoided": hits,
+        },
         "resource_pressure_events": dict(resources),
     }
 
@@ -257,6 +280,7 @@ def main():
     if (configuration.get("synthetic") is not True or configuration.get("backend") != "native"
             or args.session not in {s["id"] for s in configuration.get("sessions", [])}):
         raise ValueError("Explicit synthetic native session required")
+    from scripts.memory_host import MemoryHost
     host = MemoryHost(args.binary, args.config, args.cache)
     try:
         serve(MonitoredNativeMCP(host, args.session, MetricsLog(args.metrics)), sys.stdin.buffer, sys.stdout)

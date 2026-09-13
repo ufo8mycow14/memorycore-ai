@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 PHASES={"ingest","consolidate","answer","verify","retry","recover"}
+MODEL_PROFILE_FIELDS=("provider","model","reasoning_effort","reasoning_mode","reasoning_context","text_verbosity")
 
 
 def count(value):
@@ -12,10 +13,24 @@ def count(value):
     return value
 
 
+def model_profile(arm):
+    profile=arm.get("model_profile")
+    if profile is None:
+        return {"provider":arm.get("provider","openai"),"model":arm.get("model"),
+                "reasoning_effort":arm.get("reasoning_effort"),
+                "reasoning_mode":arm.get("reasoning_mode"),
+                "reasoning_context":arm.get("reasoning_context"),
+                "text_verbosity":arm.get("text_verbosity")}
+    if not isinstance(profile,dict) or set(profile)-set(MODEL_PROFILE_FIELDS):
+        raise ValueError("Unsupported model profile")
+    return {field:profile.get(field) for field in MODEL_PROFILE_FIELDS}
+
+
 def summarise(arm):
     if set(arm["coverage"])!=PHASES or any(v not in {"observed","no_calls","unknown"} for v in arm["coverage"].values()):
         raise ValueError("Declare coverage for every lifecycle phase")
-    totals=dict(input=0,cached_input=0,uncached_input=0,output=0,reasoning=0,total=0,calls=0,failed_calls=0)
+    totals=dict(input=0,cached_input=0,cache_write_input=0,ordinary_input=0,
+                uncached_input=0,output=0,reasoning=0,total=0,calls=0,failed_calls=0)
     seen=set()
     unknown={key for key,value in arm["coverage"].items() if value=="unknown"}
     phases=set()
@@ -36,10 +51,13 @@ def summarise(arm):
             unknown.add(call["phase"])
             continue
         inputs,cached,output,reasoning=(count(call[key]) for key in fields)
-        if cached>inputs or reasoning>output:
+        cache_write=count(call.get("cache_write_tokens",0))
+        if cached+cache_write>inputs or reasoning>output:
             raise ValueError("Inconsistent provider token subsets")
         totals["input"]+=inputs
         totals["cached_input"]+=cached
+        totals["cache_write_input"]+=cache_write
+        totals["ordinary_input"]+=inputs-cached-cache_write
         totals["uncached_input"]+=inputs-cached
         totals["output"]+=output
         totals["reasoning"]+=reasoning
@@ -65,10 +83,14 @@ def compare(document):
             raise ValueError("Usage includes an unpaired task")
         if {call["task"] for call in arm["calls"] if call["phase"]=="answer"}!=declared:
             raise ValueError("Every paired task needs answer-call accounting in both arms")
-    same_model=document["baseline"].get("model")==document["repaired"].get("model")
-    matched=bool(document["baseline"].get("model")) and same_model and document.get("matched_conditions") is True
+    baseline_profile=model_profile(document["baseline"])
+    repaired_profile=model_profile(document["repaired"])
+    same_profile=baseline_profile==repaired_profile and bool(baseline_profile.get("model"))
+    matched=same_profile and document.get("matched_conditions") is True
     complete=baseline["complete"] and repaired["complete"] and matched
     result={"baseline":baseline,"repaired":repaired,"comparable":complete,
+            "model_profile":baseline_profile if same_profile else None,
+            "profile_mismatch":None if same_profile else {"baseline":baseline_profile,"repaired":repaired_profile},
             "quality_regressions":sum(r["baseline_pass"] and not r["repaired_pass"] for r in tasks),
             "quality_improvements":sum(r["repaired_pass"] and not r["baseline_pass"] for r in tasks),
             "total_token_saving":None,"uncached_input_saving":None,"cost_saving":None,
