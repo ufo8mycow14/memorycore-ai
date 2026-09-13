@@ -55,7 +55,7 @@ I separate memory formation, retrieval and retention so each operation has clear
 
 I store durable memory in a **SQLite/SQLCipher vault**, with versioned corrections, **TurboVec semantic indexing**, compact token-budgeted packets and deletion tombstones. Cache reuse, staging expiry, background consolidation and archive retention are separate mechanisms.
 
-The [memory consolidation and retention guide](docs/MEMORY_RULES.md) links the implementation, explains each clock and documents how MemoryCore’s settings relate to the surrounding Codex configuration. Bundled third-party code is credited in [third-party notices](THIRD_PARTY_NOTICES.md).
+The [memory consolidation and retention guide](docs/MEMORY_RULES.md) links the implementation and explains each clock and control. Bundled third-party code is credited in [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Development stage
 
