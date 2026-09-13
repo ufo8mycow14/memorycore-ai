@@ -4,7 +4,7 @@ I built MemoryCore AI around a simple goal: retain useful evidence outside the a
 
 This guide describes the published native **0.5.0-dev** and Python/reference **0.10.0-dev** implementation. I still require synthetic data. Implemented mechanisms are not a claim of production readiness.
 
-![Overview: Codex asks MemoryCore for compact context; local models, TurboVec and the memory vault support retrieval and verification.](assets/memorycore-architecture.png)
+![Overview: the assistant asks MemoryCore for compact context; local models, TurboVec and the memory vault support retrieval and verification.](assets/memorycore-architecture.png)
 
 I group the host and broker under “MemoryCore” in this overview. The detailed component diagram below separates them.
 

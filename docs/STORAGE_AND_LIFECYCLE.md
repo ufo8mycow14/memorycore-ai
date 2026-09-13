@@ -50,6 +50,8 @@ Source: [`SourceReader`, `propose`, `review`, `accept` and `freshness`](../rust-
 
 I distinguish the idle generation delay from durable capture. A future capture host must durably stage completed content before acknowledging it; waiting 24 hours to extract useful facts is not a reason to keep the only copy in RAM. The repository does not supply an automatic native chat capture feed or an always-running quota scheduler.
 
+I explain the last-activity clock, examples, skip reasons and the change from Codex’s documented six-hour default in [memory rules and Codex influences](MEMORY_RULES.md).
+
 Source: [generation policy](../rust-broker/src/native/generation.rs), [archive policy](../rust-broker/src/native/retention.rs), [reference lifecycle operations](../scripts/memorycore_ai.py).
 
 ## Archive, delete and restore
