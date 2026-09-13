@@ -1,10 +1,10 @@
-# How MemoryCore AI works
+# How MemoryCore Ai - For Codex works
 
 I built MemoryCore AI around a simple goal: retain useful evidence outside the active conversation, then return the smallest relevant context that preserves its meaning. I separate durable storage, search, local inference and the client-facing interface so their responsibilities and costs are visible.
 
 This guide describes the published native **0.5.0-dev** and Python/reference **0.10.0-dev** implementation. I still require synthetic data. Implemented mechanisms are not a claim of production readiness.
 
-![Overview: the assistant asks MemoryCore for compact context; local models, TurboVec and the memory vault support retrieval and verification.](assets/memorycore-architecture.png)
+![Overview: Codex asks MemoryCore for compact context; local models, TurboVec and the memory vault support retrieval and verification.](assets/memorycore-architecture.png)
 
 I group the host and broker under “MemoryCore” in this overview. The detailed component diagram below separates them.
 
@@ -12,7 +12,7 @@ I group the host and broker under “MemoryCore” in this overview. The detaile
 
 ```mermaid
 flowchart TD
-    Client[Trusted local assistant client] --> MCP[Fixed-session stdio MCP adapter]
+    Client[Codex as the trusted local client] --> MCP[Fixed-session stdio MCP adapter]
     MCP --> Host[Python semantic host]
     Host --> Models[Local ONNX embedding and reranking models]
     Host --> Broker[Rust broker and worker processes]

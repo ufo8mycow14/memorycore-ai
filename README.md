@@ -1,16 +1,24 @@
-# MemoryCore AI
+# MemoryCore Ai - For Codex
 
-[![MemoryCore AI architecture: an assistant sends a question to MemoryCore, which uses local embedding and reranking models, a TurboVec four-bit vector index and a SQLite or SQLCipher vault to return compact context with relevant facts and provenance.](docs/assets/memorycore-architecture.png)](docs/ARCHITECTURE.md)
+[![MemoryCore Ai - For Codex architecture: Codex sends a question to MemoryCore, which uses local embedding and reranking models, a TurboVec four-bit vector index and a SQLite or SQLCipher vault to return compact context with relevant facts and provenance.](docs/assets/memorycore-architecture.png)](docs/ARCHITECTURE.md)
 
-**Durable memory. Relevant context. Less repeated work.**
+**Local persistent memory for Codex. Relevant context. Less repeated work.**
 
 [![Development](https://img.shields.io/badge/stage-working%20development%20build-orange)](#development-stage)
-[![CI](https://github.com/ufo8mycow14/memorycore-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/ufo8mycow14/memorycore-ai/actions/workflows/ci.yml)
+[![CI](https://github.com/ufo8mycow14/memorycore-ai-for-codex/actions/workflows/ci.yml/badge.svg)](https://github.com/ufo8mycow14/memorycore-ai-for-codex/actions/workflows/ci.yml)
 [![Licence: Apache 2.0](https://img.shields.io/badge/licence-Apache%202.0-blue)](LICENSE)
 
-I’m building MemoryCore AI to give assistants useful, durable memory while reducing the tokens wasted on repeatedly loading history, rediscovering decisions and carrying irrelevant context into the next task.
+I’m building **MemoryCore Ai - For Codex**, a **local persistent memory system for OpenAI Codex** with a **Model Context Protocol (MCP)** adapter. My goal is better memory for Codex project work and less token wastage from repeatedly loading history, rediscovering decisions and carrying irrelevant context into the next task.
 
 My aim is to remember the right information, retain its source and qualifications, and retrieve only what the current question needs. Memory is useful when it helps work continue accurately; a larger archive alone does not achieve that.
+
+## Why persistent memory for Codex?
+
+I designed MemoryCore around longer-running Codex projects, where decisions, constraints and unfinished work need to remain useful across sessions. Instead of relying on repeated conversation replay, I store reviewed facts with their sources and retrieve a compact packet for the current question.
+
+My approach combines **Codex memory through MCP**, **semantic search with TurboVec**, source freshness checks and explicit retention controls. I keep raw storage compression separate from **token efficiency**: the important result is less repeated context without losing the evidence needed to work accurately.
+
+I maintain this as an independent project for Codex workflows. The implementation and integration limits below describe what is actually available.
 
 ## Development stage
 
@@ -18,7 +26,7 @@ I have a working development implementation, with a Rust storage broker, a Pytho
 
 I’m inviting help with testing, portability, retrieval quality, documentation and integration. I currently limit this build to **synthetic data**. It is not a production release, a hosted service or a turnkey replacement for a client’s internal memory.
 
-## What I’m building
+## What MemoryCore adds to a Codex workflow
 
 | Capability | What the current implementation provides |
 | --- | --- |
@@ -35,7 +43,7 @@ I’m inviting help with testing, portability, retrieval quality, documentation 
 
 I describe the boundaries and relevant source files in the [feature map](docs/FEATURES.md).
 
-## How it works under the hood
+## How MemoryCore works with Codex
 
 I use **Rust/Tokio** for the native broker, **SQLite/SQLCipher** for durable storage, **local ONNX models** for embeddings and reranking, and **TurboVec 1.0.0** for the four-bit vector search index. TurboVec remains a mandatory native dependency. It shortlists possible matches; current source, version and lifecycle checks decide which evidence is eligible to return.
 
@@ -48,15 +56,23 @@ I keep the technical details in linked guides with source references:
 
 I distinguish compressed storage bytes, compact vector indexes and reduced prompt context. Each has a different cost and must be measured separately.
 
+## Codex MCP integration
+
+I provide a local stdio MCP adapter that exposes one compact `memory` tool to a configured Codex session. The host binds the session to its scope and source root, while the Rust broker checks memory operations. The Python host adds local embeddings and reranking; the monitored adapter records operational counts without storing recalled text in its metrics log.
+
+For a development trial, I start with the [synthetic setup guide](docs/GETTING_STARTED.md), build the native broker, provision reviewed local models, and configure the adapter for a dedicated synthetic project. The [interface guide](docs/INTERFACES.md) shows the session boundary and distinguishes MCP requests from raw broker requests.
+
+The repository includes `scripts/setup_local_rollout.py` for an explicit Windows Codex configuration workflow. I describe its changes in the setup guide before recommending its use. MCP access does not automatically import existing Codex conversations, replace Codex platform history or supply native chat lifecycle events.
+
 ## How I intend it to be used
 
-I designed this for long-running project work: preserving decisions between sessions, recalling relevant constraints, checking the evidence behind a remembered fact, and resuming unfinished work without repeatedly replaying whole conversations.
+I designed this for long-running Codex project work: preserving reviewed decisions between sessions, recalling relevant constraints, checking the evidence behind a remembered fact, and preparing continuity context without repeatedly replaying whole conversations.
 
 For example, a project can retain a reviewed deployment decision and its source. A later session asks for the deployment region and receives a compact, scoped answer. If that source changes, the old fact is excluded until it is reviewed again.
 
 I also want MemoryCore AI to be a useful workbench for comparing memory strategies fairly. Small tasks may be cheaper to handle by reading the source directly. Memory acquisition, review, retrieval and maintenance all have costs.
 
-## Reducing token wastage
+## Codex memory and token efficiency
 
 I target four avoidable costs:
 
@@ -75,7 +91,7 @@ I count token reduction as useful only when the answer remains correct and the f
 | Rust | Native broker; Cargo lockfile included. Windows development has used Rust 1.98.0. |
 | SQLite / SQLCipher | Local persistence; encryption requires the SQLCipher feature and explicit key configuration. |
 | MCP over stdio | Dedicated, host-configured local adapter exposing one compact `memory` tool. Client compatibility still needs validation. |
-| Codex | A local configuration helper and MCP adapter exist. I do not claim automatic chat capture or control over platform history. |
+| OpenAI Codex | Primary intended client, through the local MCP adapter and explicit configuration helper. Automatic chat capture and control over platform history are not implemented. |
 | Graphify, GitNexus, Serena | Experimental code-context adapters with contract tests; not blanket certification of live third-party integrations. |
 | Windows | Primary development and local validation platform. Linux and macOS support need independent acceptance testing. |
 
@@ -86,6 +102,8 @@ I document setup choices and integration limits in [getting started](docs/GETTIN
 From a clone of this repository, with Python 3.12+:
 
 ```sh
+git clone https://github.com/ufo8mycow14/memorycore-ai-for-codex.git
+cd memorycore-ai-for-codex
 python -m venv .venv
 # Activate .venv using the command for your shell.
 python -m pip install -r requirements-test.txt
@@ -97,7 +115,7 @@ I keep the [complete synthetic CLI walkthrough](references/operations.md) execut
 
 ## Help me improve it
 
-I welcome focused pull requests, reproducible bugs, documentation improvements and careful evaluation. Good starting areas include clean-machine setup, cross-platform validation, retrieval cases with negation or conflicting evidence, and complete token accounting.
+I welcome focused pull requests, reproducible bugs, documentation improvements and careful evaluation. Good starting areas include Codex MCP setup, cross-platform validation, retrieval cases with negation or conflicting evidence, and complete token accounting for Codex workflows.
 
 Please start with [contributing](CONTRIBUTING.md), the [development priorities](docs/ROADMAP.md), and my [security policy](SECURITY.md). I review changes through pull requests; contributing does not require write or administrator access to this repository.
 
