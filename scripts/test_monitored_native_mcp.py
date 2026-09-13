@@ -59,12 +59,21 @@ class MonitoredNativeMCPTests(unittest.TestCase):
             {"latency_ms": 30, "error": "queue_full", "memory_arguments": ["recall"],
              "packet": {}, "retrieval": {"vector_state": "unavailable"},
              "resource": {"system_cpu_pressure": True}},
+            {"latency_ms": 1, "error": None, "memory_arguments": ["recall"], "packet": {},
+             "retrieval": {"packet_cache": "hit"}, "packet_cache": {"hits": 7, "misses": 2},
+             "resource": {}},
+            {"latency_ms": 1, "error": None, "memory_arguments": ["propose"], "packet": {},
+             "retrieval": {}, "packet_cache": {"hits": None, "misses": None}, "resource": {}},
         ]
         self.metrics.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
         result = summarise(self.metrics)
-        self.assertEqual(result["rows"], 2)
+        self.assertEqual(result["rows"], 4)
         self.assertEqual(result["errors"], {"queue_full": 1})
         self.assertEqual(result["vector_states"], {"ready": 1, "unavailable": 1})
+        self.assertEqual(result["packet_cache_states"], {"hit": 1})
+        self.assertEqual(result["packet_cache_latest"], {"hits": 7, "misses": 2})
+        self.assertEqual(result["packet_cache_effect"]["hit_rate_percent"], 77.78)
+        self.assertEqual(result["packet_cache_effect"]["estimated_full_retrievals_avoided"], 7)
         self.assertEqual(result["resource_pressure_events"], {"system_cpu_pressure": 1})
         self.assertEqual(result["included_memories"]["count"], 0)
 

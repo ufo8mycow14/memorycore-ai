@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import sys
 import time
+import re
+import tomllib
 from pathlib import Path
 
 
@@ -31,26 +33,63 @@ def run(command, **kwargs):
     return result
 
 
-def append_mcp_config(config_path, name, python, host_config, cache, metrics):
+def mcp_entry(python, host_config, cache, metrics):
+    return {
+        "command": str(python),
+        "args": ['-B', '-m', 'scripts.monitored_native_mcp', 'serve', '--binary', str(BINARY),
+                 '--config', str(host_config), '--cache', str(cache), '--session',
+                 'memorycore-ai-local', '--metrics', str(metrics)],
+        "cwd": str(ROOT), "startup_timeout_sec": 120.0, "tool_timeout_sec": 60.0,
+    }
+
+
+def append_mcp_config(config_path, name, python, host_config, cache, metrics, *, dry_run=False):
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
+        raise ValueError("Server name must contain only letters, digits, underscores or hyphens")
     text = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
+    servers = tomllib.loads(text).get("mcp_servers", {})
+    entry = mcp_entry(python, host_config, cache, metrics)
     header = f"[mcp_servers.{name}]"
-    if header in text:
+    if name in servers:
+        if servers[name].get("enabled") is False:
+            raise ValueError("Existing MCP registration is disabled; configuration was not changed")
+        if any(servers[name].get(key) != value for key, value in entry.items()):
+            raise ValueError("Existing MCP registration differs; configuration was not changed")
         return {"changed": False, "reason": "already_present"}
+    block = "\n\n# MemoryCore AI synthetic local provider; no chat ingestion.\n" + header + "\n"
+    block += "\n".join(f"{key} = {json.dumps(value, ensure_ascii=False)}" for key, value in entry.items())
+    candidate = text.rstrip() + block + "\n"
+    tomllib.loads(candidate)
+    if dry_run:
+        return {"changed": False, "would_add": True, "entry": entry}
     backup = config_path.with_name(config_path.name + time.strftime(".memorycore-ai-%Y%m%d-%H%M%S.bak"))
     if config_path.exists():
         shutil.copyfile(config_path, backup)
-    block = f"""
-
-# MemoryCore AI local monitored rollout. Synthetic/local provider; no chat ingestion.
-{header}
-command = '{str(python)}'
-args = ['-B', '-m', 'scripts.monitored_native_mcp', 'serve', '--binary', '{str(BINARY)}', '--config', '{str(host_config)}', '--cache', '{str(cache)}', '--session', 'memorycore-ai-local', '--metrics', '{str(metrics)}']
-cwd = '{str(ROOT)}'
-startup_timeout_sec = 120.0
-tool_timeout_sec = 60.0
-"""
-    config_path.write_text(text.rstrip() + block + "\n", encoding="utf-8")
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(candidate, encoding="utf-8")
     return {"changed": True, "backup": str(backup)}
+
+
+def verify_mcp(python, host_config, cache, metrics):
+    entry = mcp_entry(python, host_config, cache, metrics)
+    requests = [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+            "protocolVersion": "2025-06-18", "capabilities": {},
+            "clientInfo": {"name": "memorycore-setup-check", "version": "1"}}},
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        {"jsonrpc": "2.0", "id": 3, "method": "ping"},
+    ]
+    result = run([str(python), *entry["args"]], cwd=ROOT,
+                 input="".join(json.dumps(row) + "\n" for row in requests), timeout=120)
+    rows = [json.loads(line) for line in result.stdout.splitlines()]
+    if (len(rows) != 3 or [row.get("id") for row in rows] != [1, 2, 3]
+            or any("error" in row for row in rows)
+            or rows[0].get("result", {}).get("protocolVersion") != "2025-06-18"
+            or [tool.get("name") for tool in rows[1].get("result", {}).get("tools", [])] != ["memory"]
+            or rows[2].get("result") != {}):
+        raise ValueError("MCP startup verification failed; client configuration was not changed")
+    return {"initialize": True, "memory_tool": True, "ping": True}
 
 
 def main():
@@ -60,16 +99,29 @@ def main():
     parser.add_argument("--server-name", default="memorycore_ai_monitored")
     parser.add_argument("--skip-deps", action="store_true")
     parser.add_argument("--skip-models", action="store_true")
+    parser.add_argument("--dry-run", action="store_true", help="Preview registration without creating files or running installers")
     args = parser.parse_args()
-    home = args.home
+    home = args.home.resolve()
+    args.codex_config = args.codex_config.resolve()
     vault = home / "vault"
     sources = home / "sources"
     cache = home / "model-cache"
     logs = home / "logs"
-    for directory in (vault, sources, cache, logs):
-        directory.mkdir(parents=True, exist_ok=True)
     host_config = home / "host.json"
     metrics = logs / "metrics.jsonl"
+    venv_python = home / "venv" / "Scripts" / "python.exe"
+    preview = append_mcp_config(args.codex_config, args.server_name, venv_python,
+                                host_config, cache, metrics, dry_run=True)
+    if args.dry_run:
+        print(json.dumps({"dry_run": True, "home": str(home), "mcp_config": preview,
+                          "private_chat_ingestion": False}, indent=2))
+        return
+    if host_config.exists():
+        config = json.loads(host_config.read_text(encoding="utf-8"))
+        if config.get("synthetic") is not True or config.get("backend") != "native":
+            raise ValueError("Explicit synthetic native configuration required")
+    for directory in (vault, sources, cache, logs):
+        directory.mkdir(parents=True, exist_ok=True)
     if not host_config.exists():
         config = {
             "synthetic": True,
@@ -89,18 +141,8 @@ def main():
             }],
         }
         host_config.write_text(json.dumps(config, indent=2), encoding="utf-8")
-    else:
-        config = json.loads(host_config.read_text(encoding="utf-8"))
-        changed = False
-        for session in config.get("sessions", []):
-            if isinstance(session, dict) and "archive_delete_after_days" in session:
-                session.pop("archive_delete_after_days")
-                changed = True
-        if changed:
-            host_config.write_text(json.dumps(config, indent=2), encoding="utf-8")
     if not BINARY.exists():
         run(["cargo", "build", "--locked", "--release"], cwd=ROOT / "rust-broker")
-    venv_python = home / "venv" / "Scripts" / "python.exe"
     if not venv_python.exists():
         run([str(PYTHON), "-m", "venv", str(home / "venv")])
     if not args.skip_deps:
@@ -112,9 +154,13 @@ def main():
     if not args.skip_models:
         run([str(venv_python), "-B", "-m", "scripts.vector_pipeline", "download-model", "--cache", str(cache)], cwd=ROOT)
         run([str(venv_python), "-B", "-m", "scripts.vector_pipeline", "download-reranker", "--cache", str(cache)], cwd=ROOT)
-    database = vault / "memorycore-ai.sqlite3"
+    config = json.loads(host_config.read_text(encoding="utf-8"))
+    if config.get("synthetic") is not True or config.get("backend") != "native":
+        raise ValueError("Explicit synthetic native configuration required")
+    database = Path(config["database"])
     if not database.exists():
         run([str(BINARY), "--init", "--config", str(host_config)])
+    verification = verify_mcp(venv_python, host_config, cache, metrics)
     mcp = append_mcp_config(args.codex_config, args.server_name, venv_python, host_config, cache, metrics)
     print(json.dumps({
         "installed": True,
@@ -125,6 +171,7 @@ def main():
         "metrics": str(metrics),
         "mcp_config": mcp,
         "server_name": args.server_name,
+        "verification": verification,
         "restart_required": "Restart Codex or start a new task for the new MCP server to be discovered.",
         "private_chat_ingestion": False,
     }, indent=2))

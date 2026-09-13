@@ -5,7 +5,10 @@ from scripts.lifecycle_usage import PHASES,compare,summarise
 
 
 def arm(inputs=1000,cached=200,output=100):
-    return {"model":"synthetic-model","coverage":{p:"observed" if p=="answer" else "no_calls" for p in PHASES},
+    return {"model_profile":{"provider":"openai","model":"synthetic-model","reasoning_effort":"medium",
+                              "reasoning_mode":"standard","reasoning_context":"all_turns",
+                              "text_verbosity":"medium"},
+            "coverage":{p:"observed" if p=="answer" else "no_calls" for p in PHASES},
             "calls":[{"task":"a","call_id":"1","phase":"answer","status":"completed","input_tokens":inputs,
                       "cached_input_tokens":cached,"output_tokens":output,"reasoning_tokens":40}]}
 
@@ -18,10 +21,12 @@ class UsageTests(unittest.TestCase):
     def test_savings_include_output_without_double_counting_reasoning(self):
         result=compare(self.fixture())
         self.assertEqual(result["baseline"]["observed_tokens"]["total"],1100)
+        self.assertEqual(result["baseline"]["observed_tokens"]["ordinary_input"],800)
         self.assertAlmostEqual(result["total_token_saving"],1-700/1100)
         self.assertAlmostEqual(result["uncached_input_saving"],.5)
         self.assertTrue(result["savings_target_met"])
         self.assertIsNone(result["cost_saving"])
+        self.assertEqual(result["model_profile"]["reasoning_effort"],"medium")
 
     def test_missing_background_or_cached_usage_prevents_claim(self):
         document=self.fixture()
@@ -78,3 +83,20 @@ class UsageTests(unittest.TestCase):
         data["calls"][0]["cached_input_tokens"]=1001
         with self.assertRaises(ValueError):
             summarise(data)
+
+    def test_cache_write_tokens_are_tracked_separately(self):
+        data=arm(inputs=1200,cached=500)
+        data["calls"][0]["cache_write_tokens"]=300
+        result=summarise(data)["observed_tokens"]
+        self.assertEqual(result["cached_input"],500)
+        self.assertEqual(result["cache_write_input"],300)
+        self.assertEqual(result["ordinary_input"],400)
+        self.assertEqual(result["uncached_input"],700)
+
+    def test_reasoning_profile_mismatch_prevents_comparison(self):
+        document=self.fixture()
+        document["repaired"]["model_profile"]["reasoning_effort"]="high"
+        result=compare(document)
+        self.assertFalse(result["comparable"])
+        self.assertIsNotNone(result["profile_mismatch"])
+        self.assertIsNone(result["total_token_saving"])
